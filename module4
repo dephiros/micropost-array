@@ -1,23 +1,37 @@
 ' left is the index of the leftmost element of the subarray
 ' right is the index of the rightmost element of the subarray (inclusive)
 ' number of elements in subarray = right-left+1
-Function partion(a() As Double, left As Integer, right As Integer, pivotIndex As Integer)
+Function partition(a() As Double, left As Integer, right As Integer, pivotIndex As Integer)
     Dim pivotValue As Double
     Dim i As Integer
     pivotValue = a(pivotIndex)
-    swap a(pivotIndex), a(right)
+    swap a, pivotIndex, right
     storeIndex = left
     For i = left To right - 1
         If a(i) < pivotValue Then
-            swap a(i), a(storeIndex)
+            swap a, i, storeIndex
             storeIndex = storeIndex + 1
-    swap a(storeIndex), a(right)
-    Partition = storeIndex
+            End If
+        Next i
+    swap a, storeIndex, right
+    partition = storeIndex
 End Function
 
+' Swap a(one) and a(two). a is a double array
 Sub swap(a() As Double, one As Integer, two As Integer)
     Dim temp As Double
     temp = a(one)
     a(one) = a(two)
     a(two) = temp
 End Sub
+
+'Quick sort an array of double using in-place algorithm
+Function quicksort(a() As Double, left As Integer, right As Integer)
+    Dim pivot As Integer
+    If left < right Then
+        pivot = choosePivot(a, left, right)
+        pivot = partition(a, left, right, pivot)
+        quicksort a, left, pivot - 1
+        quicksort a, pivot, right
+    End If
+End Function
