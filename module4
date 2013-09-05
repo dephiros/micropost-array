@@ -15,3 +15,9 @@ Function partion(a() As Double, left As Integer, right As Integer, pivotIndex As
     Partition = storeIndex
 End Function
 
+Sub swap(a() As Double, one As Integer, two As Integer)
+    Dim temp As Double
+    temp = a(one)
+    a(one) = a(two)
+    a(two) = temp
+End Sub
