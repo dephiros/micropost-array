@@ -1,0 +1,55 @@
+'Calculate centroid of cell from the base coordinate of post. Modified CENTROID array to be
+'double array with two elelemnt storing x and y coordinate of centroid
+Function centroid(result As Worksheet, centroid() As Double)
+    Dim xBase() As Variant, yBase() As Variant
+    xBase = result.Range("XB").Value
+    yBase = result.Range("YB").Value
+    Dim i As Integer, length As Integer
+    ReDim centroid(0 To 1)
+    centroid(0) = 0
+    centroid(1) = 0
+    length = UBound(xBase) - LBound(xBase) + 1
+    For i = 0 To i < length - 1
+        centroid = centroid + xBase
+        centroid = centroid + yBase
+        Next i
+        centroid = centroid / length
+        centroid = centroid / length
+End Function
+
+'Given a POINT, return the region that the point belongs to.
+Function assignRegion(point() As Double)
+    
+End Function
+
+'Figure out the D-region. D-region composes of 4 points closest to the centroid, top, bottom, left right
+'Those point is returned in a array with 4 elements following the written order.
+Function dRegion(x() As Double, y() As Double, centroid() As Double)
+    Dim top As Integer, bottom As Integer, left As Integer, right As Integer
+    Dim i As Integer, length As Integer
+    i = 0
+    length = UBound(x) - LBound(y) + 1
+    top = 0
+    bottom = 0
+    left = 0
+    right = 0
+    For i = 0 To length - 1
+        If y(i) - centroid(1) < y(top) - centroid(1) Then
+            top = i
+            End If
+        If centroid(1) - y(i) < centroid(1) - y(bottom) Then
+            bottom = i
+            End If
+        If x(i) - centroid(0) < y(left) - centroid(0) Then
+            left = i
+            End If
+        If centroid(0) - x(i) < centroid(0) - x(right) Then
+            right = i
+            End If
+    Dim d(0 To 3) As Double
+    d(0) = top
+    d(1) = bottom
+    d(2) = left
+    d(3) = right
+    dRegion = d
+End Function

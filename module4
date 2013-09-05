@@ -1,0 +1,17 @@
+' left is the index of the leftmost element of the subarray
+' right is the index of the rightmost element of the subarray (inclusive)
+' number of elements in subarray = right-left+1
+Function partion(a() As Double, left As Integer, right As Integer, pivotIndex As Integer)
+    Dim pivotValue As Double
+    Dim i As Integer
+    pivotValue = a(pivotIndex)
+    swap a(pivotIndex), a(right)
+    storeIndex = left
+    For i = left To right - 1
+        If a(i) < pivotValue Then
+            swap a(i), a(storeIndex)
+            storeIndex = storeIndex + 1
+    swap a(storeIndex), a(right)
+    Partition = storeIndex
+End Function
+
