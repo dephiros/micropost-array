@@ -19,7 +19,7 @@ End Function
 ' number of elements in subarray = right-left+1
 Function partition(a() As Double, left As Integer, right As Integer, pivotIndex As Integer) As Integer
     Dim pivotValue As Double
-    Dim i As Integer
+    Dim i As Integer, storeIndex As Integer
     pivotValue = a(pivotIndex)
     swap a, pivotIndex, right
     storeIndex = left
@@ -52,4 +52,22 @@ Sub swap(a() As Double, one As Integer, two As Integer)
     temp = a(one)
     a(one) = a(two)
     a(two) = temp
+End Sub
+
+' Test quick sort function
+Public Sub testQuickSort()
+    Dim left As Integer, right As Integer
+    left = 0
+    right = 4
+    Dim a(0 To 4) As Double
+    a(0) = 100
+    a(1) = 97
+    a(2) = 101
+    a(3) = 99
+    a(4) = 200
+    Call quicksort(a, left, right)
+    Dim i As Integer
+    For i = left To right
+        Debug.Print a(i)
+        Next i
 End Sub
