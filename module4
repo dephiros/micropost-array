@@ -1,7 +1,23 @@
+' choose pivot for quicksort algorithm. The pivot is the median of the last, first
+' and middle index of the partition
+Function choosePivot(a() As Double, left As Integer, right As Integer) As Double
+    Dim middle As Integer, median As Integer
+    middle = left + (right - left) / 2
+    If a(left) < a(middle) Then
+        median = middle
+    Else
+        median = left
+    End If
+    If a(median) > a(right) Then
+        median = right
+    End If
+    choosePivot = median
+End Function
+
 ' left is the index of the leftmost element of the subarray
 ' right is the index of the rightmost element of the subarray (inclusive)
 ' number of elements in subarray = right-left+1
-Function partition(a() As Double, left As Integer, right As Integer, pivotIndex As Integer)
+Function partition(a() As Double, left As Integer, right As Integer, pivotIndex As Integer) As Integer
     Dim pivotValue As Double
     Dim i As Integer
     pivotValue = a(pivotIndex)
@@ -17,16 +33,9 @@ Function partition(a() As Double, left As Integer, right As Integer, pivotIndex 
     partition = storeIndex
 End Function
 
-' Swap a(one) and a(two). a is a double array
-Sub swap(a() As Double, one As Integer, two As Integer)
-    Dim temp As Double
-    temp = a(one)
-    a(one) = a(two)
-    a(two) = temp
-End Sub
 
 'Quick sort an array of double using in-place algorithm
-Function quicksort(a() As Double, left As Integer, right As Integer)
+Sub quicksort(a() As Double, left As Integer, right As Integer)
     Dim pivot As Integer
     If left < right Then
         pivot = choosePivot(a, left, right)
@@ -34,4 +43,13 @@ Function quicksort(a() As Double, left As Integer, right As Integer)
         quicksort a, left, pivot - 1
         quicksort a, pivot, right
     End If
-End Function
+End Sub
+
+
+' Swap a(one) and a(two). a is a double array
+Sub swap(a() As Double, one As Integer, two As Integer)
+    Dim temp As Double
+    temp = a(one)
+    a(one) = a(two)
+    a(two) = temp
+End Sub
