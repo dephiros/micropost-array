@@ -1,21 +1,20 @@
 'Calculate centroid of cell from the base coordinate of post. Modified CENTROID array to be
 'double array with two elelemnt storing x and y coordinate of centroid
-Function centroid(result As Worksheet, centroid() As Double)
+Sub centroidCal(result As Worksheet, centroid() As Double)
     Dim xBase() As Variant, yBase() As Variant
     xBase = result.Range("XB").Value
     yBase = result.Range("YB").Value
     Dim i As Integer, length As Integer
-    ReDim centroid(0 To 1)
     centroid(0) = 0
     centroid(1) = 0
     length = UBound(xBase) - LBound(xBase) + 1
-    For i = 0 To i < length - 1
-        centroid = centroid + xBase
-        centroid = centroid + yBase
+    For i = LBound(xBase) To UBound(xBase)
+        centroid(0) = centroid(0) + xBase(i, 1)
+        centroid(1) = centroid(1) + yBase(i, 1)
         Next i
-        centroid = centroid / length
-        centroid = centroid / length
-End Function
+    centroid(0) = centroid(0) / length
+    centroid(1) = centroid(1) / length
+End Sub
 
 'Given a POINT, return the region that the point belongs to.
 Function assignRegion(point() As Double)
@@ -53,3 +52,11 @@ Function dRegion(x() As Double, y() As Double, centroid() As Double)
     d(3) = right
     dRegion = d
 End Function
+
+'Test centroid calculation
+Sub testCentroid()
+    Dim centroid(0 To 1) As Double
+    Call centroidCal(Worksheets("result"), centroid)
+    Debug.Print (centroid(0))
+    Debug.Print centroid(1)
+End Sub
