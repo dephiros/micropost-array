@@ -49,12 +49,9 @@ End Sub
 ' Swap a(one) and a(two). a is a double array. ind is the index array of a
 Sub swap(a() As Double, ind() As Integer, one As Integer, two As Integer)
     Dim temp As Double, tempi As Integer
-    Debug.Print "orig" & ind(one) & " " & ind(two)
-    Debug.Print "swap" & one & " " & two
     tempi = ind(one)
     ind(one) = ind(two)
     ind(two) = tempi
-    Debug.Print "after" & ind(one) & " " & ind(two)
     temp = a(one)
     a(one) = a(two)
     a(two) = temp
@@ -77,6 +74,5 @@ Public Sub testQuickSort()
     a(4) = 10
     Call quicksort(a, ind, left, right)
     For i = left To right
-        Debug.Print a(i) & " " & ind(i)
         Next i
 End Sub
