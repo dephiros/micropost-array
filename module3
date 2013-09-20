@@ -5,12 +5,13 @@ Sub centroidCal(result As Worksheet, centroid() As Double)
     xBase = result.Range("XB").Value
     yBase = result.Range("YB").Value
     Dim i As Integer, length As Integer
+    ReDim centroid(0 To 1) As Double
     centroid(0) = 0
     centroid(1) = 0
     length = UBound(xBase) - LBound(xBase) + 1
-    For i = LBound(xBase) To UBound(xBase)
-        centroid(0) = centroid(0) + xBase(i, 1)
-        centroid(1) = centroid(1) + yBase(i, 1)
+    For i = 0 To i < length - 1
+        centroid(0) = centroid(0) + xBase
+        centroid(1) = centroid(0) + yBase
         Next i
     centroid(0) = centroid(0) / length
     centroid(1) = centroid(1) / length
@@ -21,42 +22,15 @@ Function assignRegion(point() As Double)
     
 End Function
 
-'Figure out the D-region. D-region composes of 4 points closest to the centroid, top, bottom, left right
-'Those point is returned in a array with 4 elements following the written order.
+'Figure out the D-region. D-region composes of 1/3 numbers of of posts that are closest to the center.
 Function dRegion(x() As Double, y() As Double, centroid() As Double)
-    Dim top As Integer, bottom As Integer, left As Integer, right As Integer
-    Dim i As Integer, length As Integer
-    i = 0
-    length = UBound(x) - LBound(y) + 1
-    top = 0
-    bottom = 0
-    left = 0
-    right = 0
-    For i = 0 To length - 1
-        If y(i) - centroid(1) < y(top) - centroid(1) Then
-            top = i
-            End If
-        If centroid(1) - y(i) < centroid(1) - y(bottom) Then
-            bottom = i
-            End If
-        If x(i) - centroid(0) < y(left) - centroid(0) Then
-            left = i
-            End If
-        If centroid(0) - x(i) < centroid(0) - x(right) Then
-            right = i
-            End If
-    Dim d(0 To 3) As Double
-    d(0) = top
-    d(1) = bottom
-    d(2) = left
-    d(3) = right
-    dRegion = d
+
 End Function
 
 'Test centroid calculation
 Sub testCentroid()
     Dim centroid(0 To 1) As Double
     Call centroidCal(Worksheets("result"), centroid)
-    Debug.Print (centroid(0))
-    Debug.Print centroid(1)
+    Debug.Print (centroid(1))
+    Debug.Print centroid(2)
 End Sub
