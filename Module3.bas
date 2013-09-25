@@ -19,22 +19,24 @@ End Sub
 'S is the result worksheet
 'Sub will modify reg and reg_count appropriately for all regions
 
-Sub region(s As Worksheet)
-    'ReDim reg_count(1 To 5) As Integer
+Sub region(reg() As Integer, reg_count() As Integer, s As Worksheet)
+    ReDim reg_count(1 To 5) As Integer
     Dim centroid(1 To 2) As Double
     Dim xBase() As Variant, yBase() As Variant
     xBase = s.Range("XB").Value
     yBase = s.Range("YB").Value
     Call centroidCal(xBase, yBase, centroid)
-    Call dregion(centroid, xBase, yBase)
+    Call dregion(centroid, reg, reg_count, _
+    xBase, yBase)
 End Sub
 
 'Figure out the D-region. D-region composes of 1/3 numbers of of posts that are closest to the center.
 'Index for dregion is 4 in reg array
-Sub dregion(centroid() As Double, x() As Variant, y() As Variant)
+Sub dregion(centroid() As Double, reg() As Integer, reg_count() As Integer, _
+    x() As Variant, y() As Variant)
     Dim distance() As Double, ind() As Integer
-    ReDim distance(LBound(x) To UBound(x)) As Double, ind(LBound(x) To UBound(x)) As Integer
-    
+    ReDim distance(LBound(x) To UBound(x)) As Double, _
+        ind(LBound(x) To UBound(x)) As Integer
     Dim oneThird As Integer
     oneThird = Round((1 / 3) * (UBound(x) - LBound(x)))
     ReDim reg(1 To oneThird, 1 To 5) As Integer
@@ -44,7 +46,7 @@ Sub dregion(centroid() As Double, x() As Variant, y() As Variant)
         ind(i) = i
         Next i
     
-    Call Module4.quicksort(distance, ind, LBound(distance), UBound(distance))
+    Call Module4.SortViaWorksheet(distance, ind)
     For i = LBound(ind) To oneThird
         reg(i, 4) = ind(i)
         Next i
@@ -59,8 +61,9 @@ Sub testRegion()
     Set s = Worksheets("result")
     Dim centroid(1 To 2) As Double
     Dim xBase() As Variant, yBase() As Variant
+    Dim reg() As Integer, reg_count() As Integer
     xBase = s.Range("XB").Value
     yBase = s.Range("YB").Value
     Call centroidCal(xBase, yBase, centroid)
-    Call dregion(centroid, xBase, yBase)
+    Call region(reg, reg_count, s)
 End Sub

@@ -1,93 +1,51 @@
 Attribute VB_Name = "Module4"
-' choose pivot for quicksort algorithm. The pivot is the median of the last, first
-' and middle index of the partition
-Function choosePivot(a() As Double, left As Integer, right As Integer) As Double
-    Dim middle As Integer, median As Integer
-    middle = left + (right - left) / 2
-    If a(left) < a(middle) Then
-        median = middle
-    Else
-        median = left
-    End If
-    If a(median) > a(right) Then
-        median = right
-    End If
-    choosePivot = median
-End Function
-'Return the new index for the original pivot
-' left is the index of the leftmost element of the subarray
-' right is the index of the rightmost element of the subarray (inclusive)
-' number of elements in subarray = right-left+1
-Function partition(a() As Double, ind() As Integer, left As Integer, right As Integer, pivotIndex As Integer) As Integer
-    Dim pivotValue As Double
-    Dim i As Integer, storeIndex As Integer
-    pivotValue = a(pivotIndex)
-    swap a, ind, pivotIndex, right
-    storeIndex = left
-    For i = left To right - 1
-        If a(i) < pivotValue Then
-            swap a, ind, i, storeIndex
-            storeIndex = storeIndex + 1
-            End If
-        Next i
-    swap a, ind, storeIndex, right
-    partition = storeIndex
-End Function
+' Sort an array by exporting it to a newly created worksheet.
+' from http://www.cpearson.com/excel/SortingArrays.aspx
+' A is the array need to be sorted
+' IND is the original index of the array
+Sub SortViaWorksheet(a() As Double, ind() As Integer)
+Dim ws As Worksheet 'temporatory worksheet
+Dim r As Range 'Range in the temp sheet to store the array and index
+Dim i As Integer 'counter
+For i = LBound(a) To UBound(a)
+    Debug.Print ind(i) & " :"; a(i)
+    Next i
+
+'Turn off screen updating to speed up the running of macro
+Application.ScreenUpdating = False
+
+'Create a new sheet
+Set ws = ThisWorkbook.Worksheets.Add
+
+'Put the array on the worksheet
+Set r = ws.Range("A1").Resize(UBound(a) - LBound(a) + 1, 2)
+For i = 1 To r.Rows.count
+    r.Cells(i, 1) = a(i)
+    r.Cells(i, 2) = ind(i)
+    Next i
+
+'Sort the range
+r.Sort key1:=r.Columns(1), order1:=xlAscending, MatchCase:=False
 
 
-'Quick sort an array of double using in-place algorithm
-Sub quicksort(a() As Double, ind() As Integer, left As Integer, right As Integer)
-    Dim pivot As Integer
-    If left < right Then
-        pivot = choosePivot(a, left, right)
-        pivot = partition(a, ind, left, right, pivot)
-        quicksort a, ind, left, pivot - 1
-        quicksort a, ind, pivot, right
-    End If
+'Load the worksheet value back to the array
+For i = 1 To r.Rows.count
+    a(i) = r(i, 1)
+    ind(i) = r(i, 2)
+    Next i
+    
+'delete the temporary sheet
+Application.DisplayAlerts = False
+ws.Delete
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+
+'check
+'For i = LBound(a) To UBound(a)
+'    Debug.Print ind(i) & " :"; a(i)
+'    Next i
+    
 End Sub
-
-
-' Swap a(one) and a(two). a is a double array. ind is the index array of a
-Sub swap(a() As Double, ind() As Integer, one As Integer, two As Integer)
-    Dim temp As Double, tempi As Integer
-    tempi = ind(one)
-    ind(one) = ind(two)
-    ind(two) = tempi
-    temp = a(one)
-    a(one) = a(two)
-    a(two) = temp
-End Sub
-
-' Test quick sort function
-Public Sub testQuickSort()
-    Dim left As Integer, right As Integer
-    left = 0
-    right = 4
-    Dim a(0 To 4) As Double, ind() As Integer
-    ReDim ind(0 To 4) As Integer
-    Dim i As Integer
-    For i = LBound(ind) To UBound(ind)
-        ind(i) = i
-        Next i
-    a(0) = 14
-    a(1) = 99
-    a(2) = 5
-    a(3) = 154
-    a(4) = 10
-    Call quicksort(a, ind, left, right)
-    For i = left To right
-        Debug.Print ind(i) & ": " & a(i)
-        Next i
-End Sub
-'Test quicksort function 2
-Public Sub testQuicksort2()
-    Dim x() As Double, ind() As Integer
-    ReDim x(1 To 20) As Double, ind(1 To 20) As Integer
-    Dim i As Integer
-    For i = LBound(x) To UBound(x)
-        x(i) = Rnd() * (100 - 0) + 0
-        ind(i) = i
-        Next i
-    quicksort x, ind, LBound(x), UBound(x)
-    Debug.Print "Done"
+Sub te()
+ThisWorkbook.Worksheets("Sheet3").Range("A1:B20").Columns(1).Select
 End Sub
