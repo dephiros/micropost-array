@@ -1,3 +1,4 @@
+Attribute VB_Name = "Module4"
 ' choose pivot for quicksort algorithm. The pivot is the median of the last, first
 ' and middle index of the partition
 Function choosePivot(a() As Double, left As Integer, right As Integer) As Double
@@ -62,7 +63,8 @@ Public Sub testQuickSort()
     Dim left As Integer, right As Integer
     left = 0
     right = 4
-    Dim a(0 To 4) As Double, ind(0 To 4) As Integer
+    Dim a(0 To 4) As Double, ind() As Integer
+    ReDim ind(0 To 4) As Integer
     Dim i As Integer
     For i = LBound(ind) To UBound(ind)
         ind(i) = i
@@ -74,5 +76,18 @@ Public Sub testQuickSort()
     a(4) = 10
     Call quicksort(a, ind, left, right)
     For i = left To right
+        Debug.Print ind(i) & ": " & a(i)
         Next i
+End Sub
+'Test quicksort function 2
+Public Sub testQuicksort2()
+    Dim x() As Double, ind() As Integer
+    ReDim x(1 To 20) As Double, ind(1 To 20) As Integer
+    Dim i As Integer
+    For i = LBound(x) To UBound(x)
+        x(i) = Rnd() * (100 - 0) + 0
+        ind(i) = i
+        Next i
+    quicksort x, ind, LBound(x), UBound(x)
+    Debug.Print "Done"
 End Sub

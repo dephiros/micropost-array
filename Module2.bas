@@ -1,3 +1,4 @@
+Attribute VB_Name = "Module2"
 'Graph result
 Sub Graph(result As Worksheet)
     'modified data for graphing

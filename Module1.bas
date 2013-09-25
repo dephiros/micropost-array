@@ -1,3 +1,4 @@
+Attribute VB_Name = "Module1"
 Public Sub ProcessData()
     Dim top As Worksheet, base As Worksheet, result As Worksheet
     Set top = Worksheets("top")
