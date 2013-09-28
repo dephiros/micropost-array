@@ -21,20 +21,21 @@ End Sub
 
 Sub region(reg() As Integer, reg_count() As Integer, s As Worksheet)
     ReDim reg_count(1 To 5) As Integer
-    Dim centroid(1 To 2) As Double
+    Dim centroid(1 To 2) As Double, ind() As Integer
     Dim xBase() As Variant, yBase() As Variant
     xBase = s.Range("XB").Value
     yBase = s.Range("YB").Value
     Call centroidCal(xBase, yBase, centroid)
-    Call dregion(centroid, reg, reg_count, _
+    Call regionD(centroid, ind, reg, reg_count, _
     xBase, yBase)
+
 End Sub
 
 'Figure out the D-region. D-region composes of 1/3 numbers of of posts that are closest to the center.
 'Index for dregion is 4 in reg array
-Sub dregion(centroid() As Double, reg() As Integer, reg_count() As Integer, _
+Function regionD(centroid() As Double, ind() As Integer, reg() As Integer, reg_count() As Integer, _
     x() As Variant, y() As Variant)
-    Dim distance() As Double, ind() As Integer
+    Dim distance() As Double
     ReDim distance(LBound(x) To UBound(x)) As Double, _
         ind(LBound(x) To UBound(x)) As Integer
     Dim oneThird As Integer
@@ -49,11 +50,14 @@ Sub dregion(centroid() As Double, reg() As Integer, reg_count() As Integer, _
     Call Module4.SortViaWorksheet(distance, ind)
     For i = LBound(ind) To oneThird
         reg(i, 4) = ind(i)
+        ind(i) = -1 'mark ind(i) as used already assigned to a region
         Next i
-    For i = LBound(reg) To UBound(reg)
-        Debug.Print ind(i) & ": "; reg(i, 4)
-        Next i
-End Sub
+    reg_count(4) = oneThird
+    'For i = LBound(reg) To UBound(reg)
+    '    Debug.Print ind(i) & ": "; reg(i, 4)
+    '   Next i
+    dregion = ind
+End Function
 
 'Test region calculation
 Sub testRegion()
