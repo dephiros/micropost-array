@@ -70,9 +70,6 @@ Sub prepareData(result As Worksheet, count As Integer, force As Boolean, top As 
             Next i
         Next j
 
-'    If force Then
-'        Call prepareForce(result, count, xb, yb)
-'    Else
         Set xt = result.Range("scaled_XT").Cells(1, 1)
         Set yt = result.Range("scaled_YT").Cells(1, 1)
         For i = 0 To count - 1
@@ -84,22 +81,7 @@ Sub prepareData(result As Worksheet, count As Integer, force As Boolean, top As 
 '    End If
 
 End Sub
-'Prepare data for graphing by force
-Sub prepareForce(result As Worksheet, count As Integer, xb As Range, yb As Range)
-    Dim f As Range, theta As Range, minF As Double
-    Set f = result.Range("Force").Cells(1, 1)
-    Set theta = result.Range("Theta").Cells(1, 1)
-    Set plotRange = result.Range("Force").Cells(1, 1).Offset(0, 1)
-    minF = Module1.minCol(result.Range("Force"))
-    factor = 1 / minF
-    MsgBox (minD & ", " & minF)
-    For i = 0 To count - 1
-        plotRange.Offset(i, 1).Value = xb.Offset(i)
-        plotRange.Offset(i, 2).Value = yb.Offset(i)
-        plotRange.Offset(i + count, 1).Value = f.Offset(i) * factor * Cos(theta.Offset(i)) * 10
-        plotRange.Offset(i + count, 2).Value = f.Offset(i) * factor * Sin(theta.Offset(i)) * 10
-        Next i
-End Sub
+
 
 'Format chart, line, arrow. Background image has to be named cell
 Sub formatChart(chart As chart)
