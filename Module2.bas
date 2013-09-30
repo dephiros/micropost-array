@@ -39,7 +39,7 @@ Sub Graph(result As Worksheet)
     End With
     'Add Chart
     With result.ChartObjects.Add _
-        (left:=100, Width:=375, top:=75, Height:=225)
+        (Left:=100, Width:=375, top:=75, Height:=225)
         .Name = "displacement"
         .chart.ChartType = xlXYScatter
         .chart.SetSourceData Source:=result.Range(plotRange.Offset(0, 1), plotRange.Offset(3 * count - 1, 2))
@@ -47,6 +47,7 @@ Sub Graph(result As Worksheet)
     Dim chartobj As ChartObject
     Set chartobj = result.ChartObjects("displacement")
     Call formatChart(chartobj.chart)
+    Call graphDLine(result.ChartObjects)
     Call exportChart(chartobj)
 End Sub
 'Prepare data for graphing
@@ -130,6 +131,26 @@ Sub formatChart(chart As chart)
         ax.HasMajorGridlines = False
         ax.HasMinorGridlines = False
         Next
+End Sub
+'graph the boundary of d-region
+Sub graphDLine(chartobjs As ChartObjects)
+    Dim region As Worksheet, pRange As Range
+    Dim chartobj As ChartObject
+    Dim chrt As chart
+    Set chrt = chartobjs("displacement").chart
+    Set region = ThisWorkbook.Worksheets("Region")
+    region.Range("dBoundaryX").Cells(2, 1).Value = 0
+    region.Range("dBoundaryX").Cells(4, 1).Value = chrt.Axes(xlCategory).MaximumScale
+    region.Range("dBoundaryY").Cells(1, 1).Value = 0
+    region.Range("dBoundaryY").Cells(3, 1).Value = chrt.Axes(xlValue).MaximumScale
+    Set pRange = region.Range(region.Range("dBoundaryX").Cells(1, 1), region.Range("dBoundaryY").Cells(4, 1))
+    pRange.Select
+    With chrt.SeriesCollection.NewSeries
+        .Name = "dboundary"
+        .XValues = region.Range("dBoundaryX")
+        .Values = region.Range("dBoundaryY")
+        End With
+    
 End Sub
 'Export chart to image if user say yes
 Sub exportChart(chartobj As ChartObject)
