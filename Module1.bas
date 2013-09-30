@@ -1,5 +1,6 @@
 Attribute VB_Name = "Module1"
 Public Sub ProcessData()
+    Application.ScreenUpdating = False
     Dim top As Worksheet, base As Worksheet, result As Worksheet
     Set top = Worksheets("top")
     Set base = Worksheets("base")
@@ -10,11 +11,13 @@ Public Sub ProcessData()
     Call nameCol(top)
     Call nameCol(base)
     'Create new sheet
+    Application.DisplayAlerts = False
     For Each sh In Worksheets
-        If sh.name Like "result" Then sh.Delete
+        If sh.Name Like "result" Then sh.Delete
     Next
     Set result = Sheets.Add
-    result.name = "result"
+    result.Name = "result"
+    Application.DisplayAlerts = True
     Dim rowNum As Integer
     If top.Cells(1, 1).End(xlDown).Row > base.Cells(1, 1).End(xlDown).Row Then
         rowNum = base.Cells(1, 1).End(xlDown).Row - 1
@@ -30,10 +33,10 @@ Public Sub ProcessData()
     Call scaleG(3)
     'graph
     Call Module2.Graph(result)
-
+    Application.ScreenUpdating = True
 End Sub
 Sub clearName(ws As Worksheet)
-    Dim nm As name
+    Dim nm As Name
     On Error Resume Next
     For Each nm In ThisWorkbook.names
         nm.Delete
@@ -47,7 +50,7 @@ Sub nameCol(ws As Worksheet)
     Set data = ThisWorkbook
     Set nameRange = ws.Range("A1", ws.Cells(1, 1).End(xlToRight))
     For Each i In nameRange
-        If hasValue(i) Then ws.Range(i.Offset(1, 0), i.End(xlDown)).name = i.Value & ws.name
+        If hasValue(i) Then ws.Range(i.Offset(1, 0), i.End(xlDown)).Name = i.Value & ws.Name
         Next i
 End Sub
 Sub makeNamedResult(result As Worksheet, rowNum As Integer)
@@ -61,11 +64,11 @@ Sub makeNamedResult(result As Worksheet, rowNum As Integer)
     counter = 0
     Set iHeader = result.Range("B1")
     Set iRange = result.Range("B2", "B" & rowNum + 1)
-    For Each name In names
-        iHeader.Offset(0, counter).Value = name
-        iRange.Offset(0, counter).name = name
+    For Each Name In names
+        iHeader.Offset(0, counter).Value = Name
+        iRange.Offset(0, counter).Name = Name
         counter = counter + 1
-    Next name
+    Next Name
 
 End Sub
 
@@ -114,7 +117,6 @@ Public Sub matchData(top As Worksheet, base As Worksheet, result As Worksheet)
         j = 1
         min = 0
         last = 0
-        Out tX.Rows.Cells(1, 1)
         While j <= bX.Rows.count
             
             If Not isUSedJ(j, usedJ) Then

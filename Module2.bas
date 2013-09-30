@@ -40,7 +40,7 @@ Sub Graph(result As Worksheet)
     'Add Chart
     With result.ChartObjects.Add _
         (left:=100, Width:=375, top:=75, Height:=225)
-        .name = "displacement"
+        .Name = "displacement"
         .chart.ChartType = xlXYScatter
         .chart.SetSourceData Source:=result.Range(plotRange.Offset(0, 1), plotRange.Offset(3 * count - 1, 2))
         End With
@@ -133,12 +133,12 @@ Sub exportChart(chartobj As ChartObject)
     reply = MsgBox(Prompt:="Export the chart as png?", _
         Buttons:=vbYesNo, Title:="Export Chart")
     If reply = vbYes Then
-        name = "result.png"
+        Name = "result.png"
         On Error Resume Next
-        Kill ThisWorkbook.Path & "\" & name
+        Kill ThisWorkbook.Path & "\" & Name
         On Error GoTo 0
         chartobj.Activate
-        chartobj.chart.Export Filename:=ThisWorkbook.Path & "\" & name, Filtername:="PNG"
+        chartobj.chart.Export Filename:=ThisWorkbook.Path & "\" & Name, Filtername:="PNG"
     End If
 End Sub
 

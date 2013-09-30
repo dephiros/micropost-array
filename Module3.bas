@@ -20,6 +20,7 @@ End Sub
 'Sub will modify reg and reg_count appropriately for all regions
 
 Sub region(reg() As Integer, reg_count() As Integer, s As Worksheet)
+    Application.ScreenUpdating = False
     'allocated space as 1/2 the total number of post for each region
     Dim x() As Variant, y() As Variant
     x = s.Range("XB").Value
@@ -41,6 +42,8 @@ Sub region(reg() As Integer, reg_count() As Integer, s As Worksheet)
     Call regionB(dBoundary, ind, reg, reg_count, x, y)
     Call regionF(dBoundary, ind, reg, reg_count, x, y)
     Call regionC(dBoundary, ind, reg, reg_count, x, y)
+    Call writeRegion(dBoundary, UBound(x) - LBound(x) + 1, reg, reg_count)
+    Application.ScreenUpdating = True
 End Sub
 'Figure out the region A(1). Region A composes of all posts that are to the top left and bottom left
 ' of region D
@@ -199,6 +202,54 @@ continue:
             Next i
         
 End Sub
+'write region data to a spreadsheet for graphing purpose to a worksheet called region
+Sub writeRegion(dBoundary() As Double, post_num As Integer, reg() As Integer, reg_count() As Integer)
+    Dim region As Worksheet, boundaryX As Range, boundaryY As Range
+    Dim iRange As Range, iHeader As Range
+    Dim i As Integer, j As Integer, regionNum As Integer
+    regionNum = UBound(reg_count) - LBound(reg_count) + 1
+    Dim names() As Variant
+    Application.DisplayAlerts = False
+    For Each sh In Worksheets
+        If sh.Name Like "Region" Then sh.Delete
+        Next
+    Set region = ThisWorkbook.Sheets.Add
+    region.Name = "Region"
+    Application.DisplayAlerts = True
+    'plus 2 at the end is for boundaryx and boundaryy
+    ReDim names(1 To regionNum + 2) As Variant
+    'make the array of name
+    For i = LBound(names) To regionNum
+        names(i) = "Region" & Chr(i + 64)
+        Next i
+    names(regionNum + 1) = "dBoundaryX"
+    names(regionNum + 2) = "dBoundaryY"
+    Set iRange = region.Range("A2")
+    Set iHeader = region.Range("A1")
+    'create the range with name according to the array
+    For i = LBound(names) To regionNum
+        Set iHeader = iHeader.Offset(0, 1)
+        iHeader.Value = names(i)
+        Set iRange = iRange.Offset(0, 1)
+        Set iRange = iRange.Resize(reg_count(i), 1)
+        iRange.Name = names(i)
+        For j = 1 To iRange.Rows.count
+            iRange.Cells(j, 1).Value = reg(j, i)
+            Next j
+        Next i
+    j = 1
+    For i = regionNum + 1 To UBound(names)
+        Set iHeader = iHeader.Offset(0, 1)
+        iHeader.Value = names(i)
+        Set iRange = iRange.Offset(0, 1)
+        Set iRange = iRange.Resize(2, 1)
+        iRange.Name = names(i)
+        iRange.Cells(1, 1).Value = dBoundary(j)
+        iRange.Cells(2, 1).Value = dBoundary(j + 2)
+        j = j + 1
+        Next i
+End Sub
+
 
 'Test region calculation
 Sub testRegion()
