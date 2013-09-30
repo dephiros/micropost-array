@@ -126,6 +126,10 @@ Sub formatChart(chart As chart)
     chart.Axes(xlValue).MaximumScale = pic.Height * coFactor
     chart.Axes(xlCategory).MinimumScale = 0
     chart.Axes(xlCategory).MaximumScale = pic.Width * coFactor
+    For Each ax In chart.Axes
+        ax.HasMajorGridlines = False
+        ax.HasMinorGridlines = False
+        Next
 End Sub
 'Export chart to image if user say yes
 Sub exportChart(chartobj As ChartObject)
