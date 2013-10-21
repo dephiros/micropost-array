@@ -222,11 +222,11 @@ Sub writeRegion(dBoundary() As Double, post_num As Integer, reg() As Integer, re
     For i = LBound(names) To regionNum
         names(i) = "Region" & Chr(i + 64)
         Next i
-    names(regionNum + 1) = "dBoundaryX"
-    names(regionNum + 2) = "dBoundaryY"
+    names(regionNum + 1) = "dBoundaryX, dBoundaryY"
     Set iRange = region.Range("A2")
     Set iHeader = region.Range("A1")
     'create the range with name according to the array
+    'and write the index of posts in each region
     For i = LBound(names) To regionNum
         Set iHeader = iHeader.Offset(0, 1)
         iHeader.Value = names(i)
@@ -237,16 +237,21 @@ Sub writeRegion(dBoundary() As Double, post_num As Integer, reg() As Integer, re
             iRange.Cells(j, 1).Value = reg(j, i)
             Next j
         Next i
-    j = 1
+    Set iRange = iRange.Offset(0, 1).Resize(12, 2)
+    iRange.Name = "dBoundary"
+    'Make the four line and write
     For i = regionNum + 1 To UBound(names)
         Set iHeader = iHeader.Offset(0, 1)
         iHeader.Value = names(i)
-        Set iRange = iRange.Offset(0, 1)
-        Set iRange = iRange.Resize(2, 1)
-        iRange.Name = names(i)
-        iRange.Cells(1, 1).Value = dBoundary(j)
-        iRange.Cells(2, 1).Value = dBoundary(j + 2)
-        j = j + 1
+        'Write the x line
+        j = i - regionNum
+        iRange.Cells(6 * j - 5, 1).Value = dBoundary(2 * j - 1)
+        iRange.Cells(6 * j - 5, 2).Value = 0
+        iRange.Cells(6 * j - 5 + 1, 1).Value = dBoundary(2 * j - 1)
+        'Write the y line
+        iRange.Cells(6 * j - 5 + 3, 2).Value = dBoundary(2 * j - 1 + 1)
+        iRange.Cells(6 * j - 5 + 3, 1).Value = 0
+        iRange.Cells(6 * j - 5 + 4, 2).Value = dBoundary(2 * j - 1 + 1)
         Next i
 End Sub
 

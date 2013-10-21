@@ -1,5 +1,5 @@
 Attribute VB_Name = "Module1"
-Public Sub ProcessData()
+Public Sub ProcessData(exportChart As Boolean, scl As Double, topAsBase As Boolean)
     Application.ScreenUpdating = False
     Dim top As Worksheet, base As Worksheet, result As Worksheet
     Set top = Worksheets("top")
@@ -31,8 +31,9 @@ Public Sub ProcessData()
     'calculate displacement and force data
     Call Calculation(result)
     Call scaleG(3)
-    'graph
-    Call Module2.Graph(result)
+    'user input
+    Call Module3.testRegion
+    Call Module2.Graph(exportChart, result, scl, topAsBase)
     Application.ScreenUpdating = True
 End Sub
 Sub clearName(ws As Worksheet)
@@ -71,6 +72,14 @@ Sub makeNamedResult(result As Worksheet, rowNum As Integer)
     Next Name
 
 End Sub
+'Display a userform for user to choose option as well as scale
+Sub optionSelect(exportChart As Boolean, scl As Double, topAsBase As Boolean)
+    Options.Show
+    exportChart = Options.exportChart.Value
+    topAsBase = Options.topAsBase.Value
+    scl = Options.scale_um / Options.scale_pixel
+End Sub
+
 
 'sort NAME column in workseet in descending order
     Public Sub sortCol(ws As Worksheet, colName As String)

@@ -1,24 +1,15 @@
 Attribute VB_Name = "Module2"
 'Graph result
-Sub Graph(result As Worksheet)
+Sub Graph(exportChart As Boolean, result As Worksheet, scl As Double, topAsBase As Boolean)
     'modified data for graphing
-    Dim count As Integer, plotRange As Range, force As Boolean, top As Boolean
-    Dim temp
+    Dim count As Integer, plotRange As Range, force As Boolean
     Set plotRange = result.Range("Force").Cells(1, 1).Offset(0, 1)
-    count = Application.WorksheetFunction.count(result.Range("XT"))
-    top = False
-    force = False
-    temp = MsgBox(Prompt:="make coordinate of the top the origin of the arrow?", _
-        Buttons:=vbYesNo, Title:="Top as Base of Arrow")
-    If temp = vbYes Then
-        top = True
-    End If
 '    temp = MsgBox(Prompt:="make a force graph?(instead of displacement)", _
 '        Buttons:=vbYesNo, Title:="Force vs. Displacement")
 '    If temp = vbYes Then
 '        force = True
 '    End If
-    Call prepareData(result, count, force, top)
+    Call prepareData(result, count, force, topAsBase)
     'sort data for graphing
     Dim col As Range, sortRange As Range, lastRow As Range
     Set col = result.Range(plotRange, plotRange.Offset(3 * count - 1))
@@ -48,7 +39,7 @@ Sub Graph(result As Worksheet)
     Set chartobj = result.ChartObjects("displacement")
     Call formatChart(chartobj.chart)
     Call graphDLine(result.ChartObjects)
-    Call exportChart(chartobj)
+    If exportChart Then Call exportChartf(chartobj)
 End Sub
 'Prepare data for graphing
 Sub prepareData(result As Worksheet, count As Integer, force As Boolean, top As Boolean)
@@ -134,36 +125,31 @@ Sub formatChart(chart As chart)
 End Sub
 'graph the boundary of d-region
 Sub graphDLine(chartobjs As ChartObjects)
-    Dim region As Worksheet, pRange As Range
+    Dim region As Worksheet, pRange As Range, i As Integer
     Dim chartobj As ChartObject
     Dim chrt As chart
     Set chrt = chartobjs("displacement").chart
     Set region = ThisWorkbook.Worksheets("Region")
-    region.Range("dBoundaryX").Cells(2, 1).Value = 0
-    region.Range("dBoundaryX").Cells(4, 1).Value = chrt.Axes(xlCategory).MaximumScale
-    region.Range("dBoundaryY").Cells(1, 1).Value = 0
-    region.Range("dBoundaryY").Cells(3, 1).Value = chrt.Axes(xlValue).MaximumScale
-    Set pRange = region.Range(region.Range("dBoundaryX").Cells(1, 1), region.Range("dBoundaryY").Cells(4, 1))
+    For i = 1 To 2
+        region.Range("dBoundary").Cells(6 * i - 4, 2).Value = chrt.Axes(xlCategory).MaximumScale
+        region.Range("dBoundary").Cells(6 * i - 4 + 3, 1).Value = chrt.Axes(xlValue).MaximumScale
+        Next i
+    Set pRange = region.Range("dBoundary")
     pRange.Select
     With chrt.SeriesCollection.NewSeries
         .Name = "dboundary"
-        .XValues = region.Range("dBoundaryX")
-        .Values = region.Range("dBoundaryY")
+        .XValues = pRange.Columns(1)
+        .Values = pRange.Columns(2)
         End With
     
 End Sub
 'Export chart to image if user say yes
-Sub exportChart(chartobj As ChartObject)
-    Dim reply As Integer
-    reply = MsgBox(Prompt:="Export the chart as png?", _
-        Buttons:=vbYesNo, Title:="Export Chart")
-    If reply = vbYes Then
-        Name = "result.png"
-        On Error Resume Next
-        Kill ThisWorkbook.Path & "\" & Name
-        On Error GoTo 0
-        chartobj.Activate
-        chartobj.chart.Export Filename:=ThisWorkbook.Path & "\" & Name, Filtername:="PNG"
-    End If
+Sub exportChartf(chartobj As ChartObject)
+    Name = "result.png"
+    On Error Resume Next
+    Kill ThisWorkbook.Path & "\" & Name
+    On Error GoTo 0
+    chartobj.Activate
+    chartobj.chart.Export Filename:=ThisWorkbook.Path & "\" & Name, Filtername:="PNG"
 End Sub
 

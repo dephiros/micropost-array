@@ -13,35 +13,53 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+Private Sub CheckBox1_Click()
+
+End Sub
+Private Sub close_Click()
+    Unload Me
+End Sub
+
 Private Sub default_Click()
     topAsBase.Value = False
     exportChart.Value = True
-    scale_pixel.Value = ""
-    scale_um.Value = ""
+    scale_pixel.Value = "1"
+    scale_um.Value = "1"
     scale_pixel.SetFocus
     Me.Hide
 End Sub
 
+Private Sub exportChart_Click()
+
+End Sub
+
 Private Sub ok_Click()
-    Me.Hide
+    Call Module1.ProcessData(Options.exportChart.Value, _
+        (Options.scale_um / Options.scale_pixel), _
+        Options.topAsBase)
+    Unload Me
 End Sub
 
 
 Private Sub scale_pixel_Change()
-    If !IsNumeric(scale_pixel.Text) Then ok.Enabled = False
+    If Not IsNumeric(scale_pixel.Text) Then ok.Enabled = False
     ok.Enabled = True
 End Sub
 
 
 Private Sub scale_um_Change()
-    If !IsNumeric(scale_um.Text) Then ok.Enabled = False
+    If Not IsNumeric(scale_um.Text) Then ok.Enabled = False
     ok.Enabled = True
+End Sub
+
+Private Sub topAsBase_Click()
+
 End Sub
 
 Private Sub UserForm_Initialize()
     topAsBase.Value = False
     exportChart.Value = True
-    scale_pixel.Value = ""
-    scale_um.Value = ""
+    scale_pixel.Value = "1"
+    scale_um.Value = "1"
     scale_pixel.SetFocus
 End Sub
