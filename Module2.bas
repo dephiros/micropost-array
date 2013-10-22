@@ -1,6 +1,6 @@
 Attribute VB_Name = "Module2"
 'Graph result
-Sub Graph(exportChart As Boolean, result As Worksheet, scl As Double, topAsBase As Boolean)
+Sub Graph(exportChart As Boolean, result As Worksheet, scl As Double, topAsBottom As Boolean)
     'modified data for graphing
     Dim count As Integer, plotRange As Range, force As Boolean
     Set plotRange = result.Range("Force").Cells(1, 1).Offset(0, 1)
@@ -9,7 +9,7 @@ Sub Graph(exportChart As Boolean, result As Worksheet, scl As Double, topAsBase 
 '    If temp = vbYes Then
 '        force = True
 '    End If
-    Call prepareData(result, count, force, topAsBase)
+    Call prepareData(result, count, force, topAsBottom)
     'sort data for graphing
     Dim col As Range, sortRange As Range, lastRow As Range
     Set col = result.Range(plotRange, plotRange.Offset(3 * count - 1))
@@ -98,7 +98,7 @@ Sub formatChart(chart As chart)
     'Insert image background to chart
         'get current directory
         Dim currentDir As String, picDir As String
-        currentDir = ThisWorkbook.Path
+        currentDir = ThisWorkbook.path
         picDir = currentDir & "\cell.tif"
     With chart.PlotArea.Format.Fill
         .Visible = msoTrue
@@ -147,9 +147,9 @@ End Sub
 Sub exportChartf(chartobj As ChartObject)
     Name = "result.png"
     On Error Resume Next
-    Kill ThisWorkbook.Path & "\" & Name
+    Kill ThisWorkbook.path & "\" & Name
     On Error GoTo 0
     chartobj.Activate
-    chartobj.chart.Export Filename:=ThisWorkbook.Path & "\" & Name, Filtername:="PNG"
+    chartobj.chart.Export Filename:=ThisWorkbook.path & "\" & Name, Filtername:="PNG"
 End Sub
 

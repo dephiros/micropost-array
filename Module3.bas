@@ -1,14 +1,14 @@
 Attribute VB_Name = "Module3"
-'Calculate centroid of cell from the base coordinate of post. Modified CENTROID array to be
+'Calculate centroid of cell from the bottom coordinate of post. Modified CENTROID array to be
 'double array with two elelemnt storing x and y coordinate of centroid
-Sub centroidCal(xBase() As Variant, yBase() As Variant, centroid() As Double)
+Sub centroidCal(xbottom() As Variant, ybottom() As Variant, centroid() As Double)
     Dim i As Integer, length As Integer
     centroid(1) = 0
     centroid(2) = 0
-    length = UBound(xBase) - LBound(xBase) + 1
+    length = UBound(xbottom) - LBound(xbottom) + 1
     For i = 1 To length
-        centroid(1) = centroid(1) + xBase(i, 1)
-        centroid(2) = centroid(2) + yBase(i, 1)
+        centroid(1) = centroid(1) + xbottom(i, 1)
+        centroid(2) = centroid(2) + ybottom(i, 1)
         Next i
     centroid(1) = centroid(1) / length
     centroid(2) = centroid(2) / length
@@ -261,10 +261,10 @@ Sub testRegion()
     Dim s As Worksheet
     Set s = Worksheets("result")
     Dim centroid(1 To 2) As Double
-    Dim xBase() As Variant, yBase() As Variant
+    Dim xbottom() As Variant, ybottom() As Variant
     Dim reg() As Integer, reg_count() As Integer
-    xBase = s.Range("XB").Value
-    yBase = s.Range("YB").Value
-    Call centroidCal(xBase, yBase, centroid)
+    xbottom = s.Range("XB").Value
+    ybottom = s.Range("YB").Value
+    Call centroidCal(xbottom, ybottom, centroid)
     Call region(reg, reg_count, s)
 End Sub

@@ -21,7 +21,7 @@ Private Sub close_Click()
 End Sub
 
 Private Sub default_Click()
-    topAsBase.Value = False
+    topAsBottom.Value = False
     exportChart.Value = True
     scale_pixel.Value = "113"
     scale_um.Value = "50"
@@ -36,7 +36,7 @@ End Sub
 Private Sub ok_Click()
     Call Module1.ProcessData(Options.exportChart.Value, _
         (Options.scale_um / Options.scale_pixel), _
-        Options.topAsBase)
+        Options.topAsBottom)
     Unload Me
 End Sub
 
@@ -52,12 +52,12 @@ Private Sub scale_um_Change()
     ok.Enabled = True
 End Sub
 
-Private Sub topAsBase_Click()
+Private Sub topAsbottom_Click()
 
 End Sub
 
 Private Sub UserForm_Initialize()
-    topAsBase.Value = False
+    topAsBottom.Value = False
     exportChart.Value = True
     scale_pixel.Value = "113"
     scale_um.Value = "50"
