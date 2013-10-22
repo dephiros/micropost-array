@@ -27,7 +27,7 @@ Public Sub ProcessData(exportChart As Boolean, scl As Double, topAsBase As Boole
     'create named column for result
     Call makeNamedResult(result, rowNum)
     'match top and base data
-    Call matchData(top, base, result)
+    Call matchData(top, base, result, scl)
     'calculate displacement and force data
     Call Calculation(result)
     Call scaleG(3)
@@ -104,7 +104,7 @@ End Sub
 End Sub
 
 'Search and match data according to dx, dy and put to result worksheet.
-Public Sub matchData(top As Worksheet, base As Worksheet, result As Worksheet)
+Public Sub matchData(top As Worksheet, base As Worksheet, result As Worksheet, scl As Double)
     Dim tX As Range, tY As Range, bX As Range, bY As Range, average() As Double, count As Integer
     'Set tX = top.Cells.Find("X", , xlValues, xlWhole).EntireColumn.SpecialCells(xlCellTypeConstants).Offset(1).SpecialCells(xlCellTypeConstants).Cells
     'Set tY = top.Cells.Find("Y", , xlValues, xlWhole).EntireColumn.SpecialCells(xlCellTypeConstants).Offset(1).SpecialCells(xlCellTypeConstants).Cells
@@ -143,7 +143,7 @@ Public Sub matchData(top As Worksheet, base As Worksheet, result As Worksheet)
         Wend
         If min <> 0 Then
             count = count + 1
-            Call wResult(top, base, result, count, i, min)
+            Call wResult(top, base, result, count, i, min, scl)
             Dim l As Integer
             For l = 1 To UBound(usedJ)
                 If usedJ(l) = 0 Then
@@ -172,10 +172,9 @@ Function isUSedJ(j As Integer, usedJ() As Integer) As Boolean
 isUSedJ = used
 End Function
 'Write result to result worksheet in approriate units. Coordinate is kept as measured for graphing.
-Sub wResult(top As Worksheet, base As Worksheet, result As Worksheet, count As Integer, rowT As Integer, rowB As Integer)
-    Dim s As Double
+'s is the scale
+Sub wResult(top As Worksheet, base As Worksheet, result As Worksheet, count As Integer, rowT As Integer, rowB As Integer, s As Double)
     'More accurate scale needed.
-    s = 2.25 / WorksheetFunction.Max(Range("Majorbase").Cells(rowB, 1).Value)
     Range("AreaT").Cells(count, 1).Value = Range("Areatop").Cells(rowT, 1).Value * s ^ 2 'um^2
     Range("XT").Cells(count, 1).Value = Range("Xtop").Cells(rowT, 1).Value
     Range("YT").Cells(count, 1).Value = Range("Ytop").Cells(rowT, 1).Value
@@ -204,8 +203,9 @@ Public Function averageR(ws As Worksheet, majorN As String, minorN As String) As
     Next i
     averageR = average
 End Function
-'Calculate displacement and force and put in RESULT.
+'Calculate displacement and force and put in RESULT. Scaling is done in wResult.
 Public Sub Calculation(result As Worksheet)
+    Dim constant As Worksheet
     'variable for xy coordinate of top and base
     Dim xt As Range, yt As Range, xb As Range, yb As Range, rb() As Variant, ra() As Variant
     Set xt = Range("XT")
@@ -214,10 +214,16 @@ Public Sub Calculation(result As Worksheet)
     Set yb = Range("YB")
     rb = Range("MajorB")
     ra = Range("MajorT")
-    
     Range("Displacement").Formula = "=SQRT((XT - XB)^2 + (YT - YB)^2)"
     'Calculate Force
     'set variable
+    Application.DisplayAlerts = False
+    For Each sh In Worksheets
+        If sh.Name Like "Constant" Then sh.Delete
+    Next
+    Set constant = Sheets.Add
+    constant.Name = "constant"
+    Application.DisplayAlerts = True
     Dim E As Double, G As Double, kappa As Double, pi As Double
     pi = Application.WorksheetFunction.pi
     E = 750 'kPa
@@ -268,5 +274,7 @@ Function minCol(col As Range)
     minCol = min
 End Function
 
-
+Sub start()
+    Options.Show
+End Sub
 

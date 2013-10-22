@@ -23,8 +23,8 @@ End Sub
 Private Sub default_Click()
     topAsBase.Value = False
     exportChart.Value = True
-    scale_pixel.Value = "1"
-    scale_um.Value = "1"
+    scale_pixel.Value = "113"
+    scale_um.Value = "50"
     scale_pixel.SetFocus
     Me.Hide
 End Sub
@@ -59,7 +59,7 @@ End Sub
 Private Sub UserForm_Initialize()
     topAsBase.Value = False
     exportChart.Value = True
-    scale_pixel.Value = "1"
-    scale_um.Value = "1"
+    scale_pixel.Value = "113"
+    scale_um.Value = "50"
     scale_pixel.SetFocus
 End Sub
