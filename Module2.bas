@@ -4,18 +4,14 @@ Sub Graph(exportChart As Boolean, result As Worksheet, scl As Double, topAsBotto
     'modified data for graphing
     Dim count As Integer, plotRange As Range, force As Boolean
     Set plotRange = result.Range("Force").Cells(1, 1).Offset(0, 1)
-'    temp = MsgBox(Prompt:="make a force graph?(instead of displacement)", _
-'        Buttons:=vbYesNo, Title:="Force vs. Displacement")
-'    If temp = vbYes Then
-'        force = True
-'    End If
+    count = Application.WorksheetFunction.count(result.Range("XT"))
     Call prepareData(result, count, force, topAsBottom)
     'sort data for graphing
     Dim col As Range, sortRange As Range, lastRow As Range
     Set col = result.Range(plotRange, plotRange.Offset(3 * count - 1))
     'select sortRange
     Set sortRange = result.Range(plotRange.Offset(0), plotRange.Offset(3 * count - 1, 2))
-
+    Call prepareData(result, count, force, topAsBottom)
     'Sort data
     With result.Sort
     .SortFields.Clear
@@ -116,6 +112,8 @@ Sub formatChart(chart As chart)
     pic.Visible = msoTrue
     chart.Axes(xlValue).MinimumScale = 0
     chart.Axes(xlValue).MaximumScale = pic.Height * coFactor
+    Module1.Out pic.Height
+    Module1.Out pic.Width
     chart.Axes(xlCategory).MinimumScale = 0
     chart.Axes(xlCategory).MaximumScale = pic.Width * coFactor
     For Each ax In chart.Axes
@@ -131,8 +129,8 @@ Sub graphDLine(chartobjs As ChartObjects)
     Set chrt = chartobjs("displacement").chart
     Set region = ThisWorkbook.Worksheets("Region")
     For i = 1 To 2
-        region.Range("dBoundary").Cells(6 * i - 4, 2).Value = chrt.Axes(xlCategory).MaximumScale
-        region.Range("dBoundary").Cells(6 * i - 4 + 3, 1).Value = chrt.Axes(xlValue).MaximumScale
+        region.Range("dBoundary").Cells(6 * i - 4, 2).Value = chrt.Axes(xlValue).MaximumScale
+        region.Range("dBoundary").Cells(6 * i - 4 + 3, 1).Value = chrt.Axes(xlCategory).MaximumScale
         Next i
     Set pRange = region.Range("dBoundary")
     pRange.Select

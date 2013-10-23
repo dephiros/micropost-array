@@ -231,11 +231,13 @@ Sub writeRegion(dBoundary() As Double, post_num As Integer, reg() As Integer, re
         Set iHeader = iHeader.Offset(0, 1)
         iHeader.Value = names(i)
         Set iRange = iRange.Offset(0, 1)
+        If (reg_count(i) = 0) Then GoTo nexti
         Set iRange = iRange.Resize(reg_count(i), 1)
         iRange.Name = names(i)
         For j = 1 To iRange.Rows.count
             iRange.Cells(j, 1).Value = reg(j, i)
             Next j
+nexti:
         Next i
     Set iRange = iRange.Offset(0, 1).Resize(12, 2)
     iRange.Name = "dBoundary"
