@@ -5,7 +5,7 @@ Sub start()
     Options.Show
 End Sub
 
-'Calculate average of Major and Minor and put in column r.
+'Calculate average of Major and Minor and return an array
 Public Function averageR(ws As Worksheet, majorN As String, minorN As String) As Double()
     Dim major As Range, minor As Range, average() As Double
     Set major = ws.Cells.Find(majorN, , xlValues, xlWhole).EntireColumn.SpecialCells(xlCellTypeConstants).Offset(1).SpecialCells(xlCellTypeConstants).Cells
@@ -137,53 +137,84 @@ End Sub
 'Search and match data according to dx, dy and put to result worksheet.
 Public Sub matchData(top As Worksheet, bottom As Worksheet, result As Worksheet, scl As Double)
     Dim tX As Range, tY As Range, bX As Range, bY As Range, average() As Double, count As Integer
-    'Set tX = top.Cells.Find("X", , xlValues, xlWhole).EntireColumn.SpecialCells(xlCellTypeConstants).Offset(1).SpecialCells(xlCellTypeConstants).Cells
-    'Set tY = top.Cells.Find("Y", , xlValues, xlWhole).EntireColumn.SpecialCells(xlCellTypeConstants).Offset(1).SpecialCells(xlCellTypeConstants).Cells
-    'Set bX = bottom.Cells.Find("X", , xlValues, xlWhole).EntireColumn.SpecialCells(xlCellTypeConstants).Offset(1).SpecialCells(xlCellTypeConstants).Cells
-    'Set bY = bottom.Cells.Find("Y", , xlValues, xlWhole).EntireColumn.SpecialCells(xlCellTypeConstants).Offset(1).SpecialCells(xlCellTypeConstants).Cells
+    Dim i As Integer, j As Integer
     count = 0
     Set tX = Range("Xtop")
     Set tY = Range("Ytop")
     Set bX = Range("Xbottom")
     Set bY = Range("Ybottom")
-    average = averageR(top, "Major", "Minor")
-    Dim i As Integer, j As Integer, k As Integer, min As Integer, usedJ() As Integer
-    Dim last As Double, dx As Double, dy As Double, current As Double
-    ReDim usedJ(1 To tX.Rows.count)
-    current = 0
-    dx = 0
-    dy = 0
-    For i = 1 To tX.Rows.count
-        j = 1
-        min = 0
-        last = 0
-        While j <= bX.Rows.count
-            
-            If Not isUSedJ(j, usedJ) Then
-                dx = tX.Cells(i, 1).Value - bX.Cells(j, 1).Value
-                dy = tY.Cells(i, 1).Value - bY.Cells(j, 1).Value
-                current = Sqr((dx ^ 2) + (dy ^ 2))
-                    'Out i & j
-                If (Not last <> 0 Or current < last) And current < Abs(average(i)) Then
-                    last = current
-                    min = j
-                                        'Out j & ":" & min
-                End If
+    'Remove data with too small area
+    Dim aB As Range, aT As Range
+    Set aB = Range("Areabottom")
+    Set aT = Range("Areatop")
+    averageB = WorksheetFunction.average(aB)
+    averageT = WorksheetFunction.average(aT)
+    For i = 1 To aB.Rows.count
+        If aB.Cells(i, 1) < averageB / 2 Then
+            aB.Cells(i, 1).EntireRow.Delete
             End If
-            j = j + 1
-        Wend
-        If min <> 0 Then
-            count = count + 1
-            Call wResult(top, bottom, result, count, i, min, scl)
-            Dim l As Integer
-            For l = 1 To UBound(usedJ)
-                If usedJ(l) = 0 Then
-                    usedJ(l) = min
-                    Exit For
+        Next i
+    For i = 1 To aT.Rows.count
+        If aT.Cells(i, 1) < averageT / 2 Then
+            aT.Cells(i, 1).EntireRow.Delete
+            End If
+        Next i
+    
+    'Generate distance from bottom to each top post.
+    Dim matchSheet As Worksheet
+    Set matchSheet = ThisWorkbook.Worksheets.Add
+    'determine which has larger count max or bottom
+    'Smaller number of count is number of column and is guaranteed match
+    count = 0
+    count0 = bX.Rows.count
+    count1 = tX.Rows.count
+    'store each column to process
+    Dim col() As Range, bottomMatch() As Integer
+    ReDim col(t To count0) As Range, bottomMatch(1 To count0) As Integer
+    For i = 1 To count0
+        Set temp = matchSheet.Range("A1").Offset(0, 2 * i - 2)
+        temp.Value = 1
+        temp.DataSeries Rowcol:=xlColumns, Type:=xlLinear, Date:=xlDay, _
+            Step:=1, Stop:=count1, Trend:=False
+        Set temp = temp.Resize(count1, 2)
+        tempX = bX.Cells(i)
+        tempY = bY.Cells(i)
+        For j = 1 To count1
+            temp.Cells(j, 2) = ((tempY - tY.Cells(j)) ^ 2 + (tempX - tX.Cells(j)) ^ 2) ^ 0.5
+            Next j
+        'Sort each post in ascending order
+        temp.Sort key1:=temp.Columns(2), order1:=xlAscending, MatchCase:=False
+        Set col(i) = temp
+        limit = WorksheetFunction.Max(Range("Majorbottom").Cells(i).Value, _
+            Range("Minorbottom").Cells(i).Value)
+        If col(i).Cells(1, 2).Value >= limit Then
+            col(i).Cells(1, 1).Value = ""
+            col(i).Cells(1, 2).Value = ""
+        End If
+        Next i
+    For i = 1 To count0
+        For j = 1 To count0
+            If i <> j And col(i).Cells(1, 1).Value = col(j).Cells(1, 1).Value Then
+                del = j
+                If col(i).Cells(1, 2).Value >= col(j).Cells(1, 2).Value Then
+                del = j
+                End If
+                col(del).Cells(1, 1).Value = ""
+                col(del).Cells(1, 2).Value = ""
+                If col(del).count > 1 Then
+                    Set col(del) = col(del).Rows(2).Resize(col(del).Rows.count - 1, 2)
                     End If
-                Next l
+            End If
+        Next j
+        If col(i).Cells(1, 1).Value <> "" Then
+            count = count + 1
+            Call wResult(top, bottom, result, count, col(i).Cells(1, 1).Value, i, scl)
         End If
     Next i
+        
+    matchSheet.Delete
+    
+    
 End Sub
 
 'Find min of a column
@@ -296,6 +327,7 @@ End Sub
     End With
  
 End Sub
+
 
 
 'Write result to result worksheet in approriate units. Coordinate is kept as measured for graphing.
