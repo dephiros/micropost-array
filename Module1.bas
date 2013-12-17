@@ -163,16 +163,16 @@ Public Sub matchData(top As Worksheet, bottom As Worksheet, result As Worksheet,
     'Generate distance from bottom to each top post.
     Dim matchSheet As Worksheet
     Set matchSheet = ThisWorkbook.Worksheets.Add
-    'determine which has larger count max or bottom
-    'Smaller number of count is number of column and is guaranteed match
-    count = 0
-    count0 = bX.Rows.count
-    count1 = tX.Rows.count
+    'Match bottom to top.
+    count = 0 ' the number of post matched.
+    count0 = bX.Rows.count 'the number of bottom
+    count1 = tX.Rows.count ' the number of top
     'store each column to process
     Dim col() As Range, bottomMatch() As Integer
     ReDim col(t To count0) As Range, bottomMatch(1 To count0) As Integer
     For i = 1 To count0
         Set temp = matchSheet.Range("A1").Offset(0, 2 * i - 2)
+        'generate count from 1 to row number of top
         temp.Value = 1
         temp.DataSeries Rowcol:=xlColumns, Type:=xlLinear, Date:=xlDay, _
             Step:=1, Stop:=count1, Trend:=False
@@ -184,6 +184,8 @@ Public Sub matchData(top As Worksheet, bottom As Worksheet, result As Worksheet,
             Next j
         'Sort each post in ascending order
         temp.Sort key1:=temp.Columns(2), order1:=xlAscending, MatchCase:=False
+        'make sure the distance between two post is not greater than max
+        'of major or minor of a post.
         Set col(i) = temp
         limit = WorksheetFunction.Max(Range("Majorbottom").Cells(i).Value, _
             Range("Minorbottom").Cells(i).Value)
@@ -192,30 +194,54 @@ Public Sub matchData(top As Worksheet, bottom As Worksheet, result As Worksheet,
             col(i).Cells(1, 2).Value = ""
         End If
         Next i
-    For i = 1 To count0
-        For j = 1 To count0
+
+    While i <= count0
+        While j <= count0
             If i <> j And col(i).Cells(1, 1).Value = col(j).Cells(1, 1).Value Then
-                del = j
-                If col(i).Cells(1, 2).Value >= col(j).Cells(1, 2).Value Then
-                del = j
-                End If
+                del = i
+                If col(i).Cells(1, 2).Value >= col(j).Cells(1, 2).Value Then del = j
                 col(del).Cells(1, 1).Value = ""
                 col(del).Cells(1, 2).Value = ""
-                If col(del).count > 1 Then
+                If col(del).Rows.count > 1 Then
                     Set col(del) = col(del).Rows(2).Resize(col(del).Rows.count - 1, 2)
+                    If j < i Then
+                        i = j - 1
+                        GoTo endj
                     End If
+                End If
             End If
-        Next j
+            j = j + 1
+        Wend
         If col(i).Cells(1, 1).Value <> "" Then
             count = count + 1
             Call wResult(top, bottom, result, count, col(i).Cells(1, 1).Value, i, scl)
         End If
-    Next i
+endj:
+        i = i + 1
+    Wend
         
-    matchSheet.Delete
+    'matchSheet.Delete
     
     
 End Sub
+'Each top/bottom post will propose to a bottom/top post. The proposal will be checked
+'the proposal array. If there is conflict, the distance will be compared; if the
+'current proposal has shorter distance to the proposed post.
+'Whoever lose will be return
+'The function return index of loser, 0 for no loser
+'COUNT is the number of row of proposalA and distanceA
+'NOTE: proposalA use proposee as index, col1 is proposer. distance A use proposee as
+' index and col1 is distance to proposer
+Function proposeMatch(proposer As Integer, proposee As Integer, _
+    distance As Double, proposalA() As Integer, distanceA As Double _
+    , count As Integer) As Integer
+    loser = proposer
+    If (proposalA(proposee) > proposer) Then
+        loser = proposalA(proposee)
+        distanceA(proposee) = distance
+    End If
+    proposeMatch = loser
+End Function
 
 'Find min of a column
 Function minCol(col As Range)
