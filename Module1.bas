@@ -73,7 +73,7 @@ Sub clearName(ws As Worksheet)
 End Sub
 
 'Check if a cell has value
-Function hasValue(cell As Range)
+Function hasValue(cell As Range) As Boolean
     hasValue = Not IsEmpty(cell.Value) And cell.Value <> ""
 End Function
 
@@ -136,9 +136,13 @@ End Sub
 
 'Search and match data according to dx, dy and put to result worksheet.
 Public Sub matchData(top As Worksheet, bottom As Worksheet, result As Worksheet, scl As Double)
-    Dim tX As Range, tY As Range, bX As Range, bY As Range, average() As Double, count As Integer
+    Dim tX As Range, tY As Range, bX As Range, bY As Range, average() As Double
+    Dim count As Integer, count0 As Integer, count1 As Integer
     Dim i As Integer, j As Integer
-    count = 0
+    'proposalA, distanceA is to store list of matched bottom/top.
+    'bachelor is stack to match the next unmatched bottom.
+    Dim proposalA() As Integer, distanceA() As Double, bachelor() As Integer, lid As Integer
+    count = 0 'number of post getting matched.
     Set tX = Range("Xtop")
     Set tY = Range("Ytop")
     Set bX = Range("Xbottom")
@@ -165,8 +169,16 @@ Public Sub matchData(top As Worksheet, bottom As Worksheet, result As Worksheet,
     Set matchSheet = ThisWorkbook.Worksheets.Add
     'Match bottom to top.
     count = 0 ' the number of post matched.
-    count0 = bX.Rows.count 'the number of bottom
-    count1 = tX.Rows.count ' the number of top
+    count0 = bX.Rows.count 'the number of bottom/proposer
+    count1 = tX.Rows.count ' the number of top/proposee
+    ReDim proposalA(1 To count1) As Integer, distanceA(1 To count1) As Double
+    ReDim bachelor(1 To count0) As Integer
+    'initialize proposalA and distanceA, 0 means no proposer
+    For i = 1 To count1
+        proposalA(i) = 0
+        distanceA(i) = 0
+        Next i
+    lid = 0
     'store each column to process
     Dim col() As Range, bottomMatch() As Integer
     ReDim col(t To count0) As Range, bottomMatch(1 To count0) As Integer
@@ -186,43 +198,54 @@ Public Sub matchData(top As Worksheet, bottom As Worksheet, result As Worksheet,
         temp.Sort key1:=temp.Columns(2), order1:=xlAscending, MatchCase:=False
         'make sure the distance between two post is not greater than max
         'of major or minor of a post.
-        Set col(i) = temp
         limit = WorksheetFunction.Max(Range("Majorbottom").Cells(i).Value, _
             Range("Minorbottom").Cells(i).Value)
-        If col(i).Cells(1, 2).Value >= limit Then
-            col(i).Cells(1, 1).Value = ""
-            col(i).Cells(1, 2).Value = ""
+        If temp.Cells(1, 2).Value >= limit Then
+            temp.ClearContents
+            Set col(i) = temp.Resize(1, 2)
+        Else 'if it passes, initialize proposalA, distanceA and bachelorA
+            Set col(i) = temp
+            'Initialize proposalA and distanceA with unchecked proposer and bachelor.
+            j = temp.Cells(1, 1).Value
+            proposalA(temp.Cells(1, 1).Value) = i 'the first proposee of current proposer.
+            distanceA(temp.Cells(1, 1).Value) = temp.Cells(1, 2).Value
+            bachelor(lid + 1) = i 'the stack will go backward from the last proposer to first.
+            lid = lid + 1
         End If
         Next i
-
-    While i <= count0
-        While j <= count0
-            If i <> j And col(i).Cells(1, 1).Value = col(j).Cells(1, 1).Value Then
-                del = i
-                If col(i).Cells(1, 2).Value >= col(j).Cells(1, 2).Value Then del = j
-                col(del).Cells(1, 1).Value = ""
-                col(del).Cells(1, 2).Value = ""
-                If col(del).Rows.count > 1 Then
-                    Set col(del) = col(del).Rows(2).Resize(col(del).Rows.count - 1, 2)
-                    If j < i Then
-                        i = j - 1
-                        GoTo endj
-                    End If
-                End If
-            End If
-            j = j + 1
-        Wend
-        If col(i).Cells(1, 1).Value <> "" Then
-            count = count + 1
-            Call wResult(top, bottom, result, count, col(i).Cells(1, 1).Value, i, scl)
-        End If
-endj:
-        i = i + 1
-    Wend
         
-    'matchSheet.Delete
-    
-    
+    'Match bottom with top and write to RESULT sheet.
+
+    While lid > 0
+        i = bachelor(lid)
+        If hasValue(col(i).Cells(1, 1)) Then 'there is a proposee
+            j = proposeMatch(i, col(i).Cells(1, 1).Value, col(i).Cells(1, 2).Value, _
+                proposalA, distanceA, count1)
+            If j <> 0 Then
+                bachelor(lid) = j
+            Else
+                bachelor(lid) = 0
+                lid = lid - 1
+            End If
+            col(i).Rows(1).ClearContents 'clear the row and shorten column i
+            If (col(i).Rows.count > 1) Then
+                Set col(i) = col(i).Rows(2).Resize(col(i).Rows.count - 1, 2)
+            End If
+        Else
+            bachelor(lid) = 0
+            lid = lid - 1
+        End If
+    Wend
+    'Write result to RESULT, j keeps track of many have been written.
+    j = 0
+    For i = 1 To count1
+        If (proposalA(i) > 0) Then
+            j = j + 1
+            Call wResult(top, bottom, result, j, i, proposalA(i), scl)
+        End If
+    Next i
+    matchSheet.Delete
+        
 End Sub
 'Each top/bottom post will propose to a bottom/top post. The proposal will be checked
 'the proposal array. If there is conflict, the distance will be compared; if the
@@ -233,15 +256,34 @@ End Sub
 'NOTE: proposalA use proposee as index, col1 is proposer. distance A use proposee as
 ' index and col1 is distance to proposer
 Function proposeMatch(proposer As Integer, proposee As Integer, _
-    distance As Double, proposalA() As Integer, distanceA As Double _
+    distance As Double, proposalA() As Integer, distanceA() As Double _
     , count As Integer) As Integer
-    loser = proposer
-    If (proposalA(proposee) > proposer) Then
-        loser = proposalA(proposee)
-        distanceA(proposee) = distance
+    loser = 0
+    If (proposalA(proposee) <> proposer) Then
+        If (distanceA(proposee) > distance) Then
+            loser = proposalA(proposee)
+            distanceA(proposee) = distance
+        Else
+            loser = proposer
+        End If
     End If
     proposeMatch = loser
 End Function
+'Write result to result worksheet in approriate units. Coordinate is kept as measured for graphing.
+'s is the scale
+Sub wResult(top As Worksheet, bottom As Worksheet, result As Worksheet, count As Integer, rowT As Integer, rowB As Integer, s As Double)
+    'More accurate scale needed.
+    Range("AreaT").Cells(count, 1).Value = Range("Areatop").Cells(rowT, 1).Value * s ^ 2 'um^2
+    Range("XT").Cells(count, 1).Value = Range("Xtop").Cells(rowT, 1).Value
+    Range("YT").Cells(count, 1).Value = Range("Ytop").Cells(rowT, 1).Value
+    Range("MajorT").Cells(count, 1).Value = Range("Majortop").Cells(rowT, 1).Value * s 'um
+    Range("MinorT").Cells(count, 1).Value = Range("Minortop").Cells(rowT, 1).Value * s 'um
+    Range("AreaB").Cells(count, 1).Value = Range("Areabottom").Cells(rowB, 1).Value * s ^ 2 'um
+    Range("XB").Cells(count, 1).Value = Range("Xbottom").Cells(rowB, 1).Value
+    Range("YB").Cells(count, 1).Value = Range("Ybottom").Cells(rowB, 1).Value
+    Range("MajorB").Cells(count, 1).Value = (Range("Majorbottom").Cells(rowB, 1).Value) * s 'um
+    Range("MinorB").Cells(count, 1).Value = (Range("Minorbottom").Cells(rowB, 1).Value) * s 'um
+    End Sub
 
 'Find min of a column
 Function minCol(col As Range)
@@ -354,21 +396,4 @@ End Sub
  
 End Sub
 
-
-
-'Write result to result worksheet in approriate units. Coordinate is kept as measured for graphing.
-'s is the scale
-Sub wResult(top As Worksheet, bottom As Worksheet, result As Worksheet, count As Integer, rowT As Integer, rowB As Integer, s As Double)
-    'More accurate scale needed.
-    Range("AreaT").Cells(count, 1).Value = Range("Areatop").Cells(rowT, 1).Value * s ^ 2 'um^2
-    Range("XT").Cells(count, 1).Value = Range("Xtop").Cells(rowT, 1).Value
-    Range("YT").Cells(count, 1).Value = Range("Ytop").Cells(rowT, 1).Value
-    Range("MajorT").Cells(count, 1).Value = Range("Majortop").Cells(rowT, 1).Value * s 'um
-    Range("MinorT").Cells(count, 1).Value = Range("Minortop").Cells(rowT, 1).Value * s 'um
-    Range("AreaB").Cells(count, 1).Value = Range("Areabottom").Cells(rowB, 1).Value * s ^ 2 'um
-    Range("XB").Cells(count, 1).Value = Range("Xbottom").Cells(rowB, 1).Value
-    Range("YB").Cells(count, 1).Value = Range("Ybottom").Cells(rowB, 1).Value
-    Range("MajorB").Cells(count, 1).Value = (Range("Majorbottom").Cells(rowB, 1).Value) * s 'um
-    Range("MinorB").Cells(count, 1).Value = (Range("Minorbottom").Cells(rowB, 1).Value) * s 'um
-    End Sub
 
