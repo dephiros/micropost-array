@@ -22,10 +22,11 @@ End Sub
 Sub region(reg() As Integer, reg_count() As Integer, s As Worksheet)
     Application.ScreenUpdating = False
     'allocated space as 1/2 the total number of post for each region
-    Dim x() As Variant, y() As Variant
+    Dim x() As Variant, y() As Variant, major() As Variant
     x = s.Range("XB").Value
     y = s.Range("YB").Value
-    ReDim reg(1 To Round((1 / 3) * (UBound(x) - LBound(x))), _
+    major = ThisWorkbook.Worksheets("bottom").Range("Majorbottom").Value
+    ReDim reg(1 To Round((1 / 2) * (UBound(x) - LBound(x))), _
         1 To 6) As Integer
     ReDim reg_count(1 To 6) As Integer
     Dim centroid(1 To 2) As Double, ind() As Integer
@@ -42,9 +43,58 @@ Sub region(reg() As Integer, reg_count() As Integer, s As Worksheet)
     Call regionB(dBoundary, ind, reg, reg_count, x, y)
     Call regionF(dBoundary, ind, reg, reg_count, x, y)
     Call regionC(dBoundary, ind, reg, reg_count, x, y)
-    Call writeRegion(dBoundary, UBound(x) - LBound(x) + 1, reg, reg_count)
+    Call writeRegion(dBoundary, UBound(x) - LBound(x) + 1, reg, reg_count, major)
     Application.ScreenUpdating = True
 End Sub
+
+
+'Figure out the region D. region D composes of 1/3 numbers of of posts that are closest to the center.
+'Index for dregion is 4 in reg array
+'regionD returns the boundary of the regionD (smallestx, smallesty, biggestx, biggest y)
+Function regionD(centroid() As Double, ind() As Integer, reg() As Integer, reg_count() As Integer, _
+    x() As Variant, y() As Variant)
+    Dim distance() As Double
+    ReDim distance(LBound(x) To UBound(x)) As Double, _
+        ind(LBound(x) To UBound(x)) As Integer
+    Dim oneThird As Integer
+    oneThird = Round((1 / 3) * (UBound(x) - LBound(x)))
+    Dim i As Integer
+    For i = LBound(x) To UBound(x)
+        distance(i) = ((x(i, 1) - centroid(1)) ^ 2 + (y(i, 1) - centroid(2)) ^ 2) ^ (1 / 2)
+        ind(i) = i
+        Next i
+    
+    Call Module4.SortViaWorksheet(distance, ind)
+    For i = LBound(ind) To oneThird
+        reg(i, 4) = ind(i)
+        ind(i) = -1 'mark ind(i) as used already assigned to a region
+        Next i
+    reg_count(4) = oneThird
+    'Calculate the boundary of d_region
+    Dim boundary(1 To 4, 1 To 2) As Double
+    Dim dx_sort() As Double, dy_sort() As Double, indtemp() As Integer
+    ReDim dx_sort(1 To oneThird) As Double, dy_sort(1 To oneThird) As Double, _
+        dind(1 To oneThird) As Integer
+    For i = 1 To oneThird
+        dx_sort(i) = x(reg(i, 4), 1)
+        dy_sort(i) = y(reg(i, 4), 1)
+        dind(i) = i
+        Next i
+    Call Module4.SortViaWorksheet(dx_sort, dind)
+    boundary(1, 1) = dx_sort(1)
+    boundary(1, 2) = dind(1)
+    boundary(3, 1) = dx_sort(UBound(dx_sort))
+    boundary(3, 2) = dind(UBound(dx_sort))
+    For i = 1 To oneThird
+        dind(i) = i
+        Next i
+    Call Module4.SortViaWorksheet(dy_sort, dind)
+    boundary(2, 1) = dy_sort(1)
+    boundary(2, 2) = dind(1)
+    boundary(4, 1) = dy_sort(UBound(dy_sort))
+    boundary(4, 2) = dind(UBound(dy_sort))
+    regionD = boundary
+End Function
 'Figure out the region A(1). Region A composes of all posts that are to the top left and bottom left
 ' of region D
 'dBoundary is the boundary of region d(refer to regionD)
@@ -60,13 +110,13 @@ Sub regionA(dBoundary() As Double, ind() As Integer, reg() As Integer, reg_count
             GoTo continue
             End If
         'if ind(i) is top-left of regionD
-        If (x(ind(i), 1) <= dBoundary(1)) And (y(ind(i), 1) >= dBoundary(4)) Then
+        If (x(ind(i), 1) <= dBoundary(1, 1)) And (y(ind(i), 1) >= dBoundary(4, 1)) Then
             reg_count(1) = reg_count(1) + 1
             reg(reg_count(1), 1) = ind(i)
             ind(i) = -1
             GoTo continue
             End If
-        If (x(ind(i), 1) <= dBoundary(1)) And (y(ind(i), 1) <= dBoundary(2)) Then
+        If (x(ind(i), 1) <= dBoundary(1, 1)) And (y(ind(i), 1) <= dBoundary(2, 1)) Then
             reg_count(1) = reg_count(1) + 1
             reg(reg_count(1), 1) = ind(i)
             ind(i) = -1
@@ -85,7 +135,7 @@ Sub regionB(dBoundary() As Double, ind() As Integer, reg() As Integer, reg_count
         If ind(i) = -1 Then
             GoTo continue
             End If
-        If (x(ind(i), 1) <= dBoundary(1)) Then
+        If (x(ind(i), 1) <= dBoundary(1, 1)) Then
             reg_count(2) = reg_count(2) + 1
             reg(reg_count(2), 2) = ind(i)
             ind(i) = -1
@@ -113,49 +163,6 @@ continue:
 End Sub
 
 
-
-
-
-'Figure out the region D. region D composes of 1/3 numbers of of posts that are closest to the center.
-'Index for dregion is 4 in reg array
-'regionD returns the boundary of the regionD (smallestx, smallesty, biggestx, biggest y)
-Function regionD(centroid() As Double, ind() As Integer, reg() As Integer, reg_count() As Integer, _
-    x() As Variant, y() As Variant)
-    Dim distance() As Double
-    ReDim distance(LBound(x) To UBound(x)) As Double, _
-        ind(LBound(x) To UBound(x)) As Integer
-    Dim oneThird As Integer
-    oneThird = Round((1 / 3) * (UBound(x) - LBound(x)))
-    Dim i As Integer
-    For i = LBound(x) To UBound(x)
-        distance(i) = ((x(i, 1) - centroid(1)) ^ 2 + (y(i, 1) - centroid(2)) ^ 2) ^ (1 / 2)
-        ind(i) = i
-        Next i
-    
-    Call Module4.SortViaWorksheet(distance, ind)
-    For i = LBound(ind) To oneThird
-        reg(i, 4) = ind(i)
-        ind(i) = -1 'mark ind(i) as used already assigned to a region
-        Next i
-    reg_count(4) = oneThird
-    'Calculate the boundary of d_region
-    Dim boundary(1 To 4) As Double
-    Dim dx_sort() As Double, dy_sort() As Double, indtemp() As Integer
-    ReDim dx_sort(1 To oneThird) As Double, dy_sort(1 To oneThird) As Double, _
-        dind(1 To oneThird) As Integer
-    For i = 1 To oneThird
-        dx_sort(i) = x(reg(i, 4), 1)
-        dy_sort(i) = y(reg(i, 4), 1)
-        Next i
-    Call Module4.SortViaWorksheet(dx_sort, dind)
-    Call Module4.SortViaWorksheet(dy_sort, dind)
-    boundary(1) = dx_sort(1)
-    boundary(2) = dy_sort(1)
-    boundary(3) = dx_sort(UBound(dx_sort))
-    boundary(4) = dy_sort(UBound(dy_sort))
-    regionD = boundary
-End Function
-
 'regionE(5) is similar to regions A but contains post that are top right and bottom right to region D
 'refer to regionA for variable doc
 Sub regionE(dBoundary() As Double, ind() As Integer, reg() As Integer, reg_count() As Integer, _
@@ -167,13 +174,13 @@ Sub regionE(dBoundary() As Double, ind() As Integer, reg() As Integer, reg_count
             GoTo continue
             End If
         'if ind(i) is top-left of regionD
-        If (x(ind(i), 1) >= dBoundary(3)) And (y(ind(i), 1) >= dBoundary(4)) Then
+        If (x(ind(i), 1) >= dBoundary(3, 1)) And (y(ind(i), 1) >= dBoundary(4, 1)) Then
             reg_count(5) = reg_count(5) + 1
             reg(reg_count(5), 5) = ind(i)
             ind(i) = -1
             GoTo continue
             End If
-        If (x(ind(i), 1) >= dBoundary(3)) And (y(ind(i), 1) <= dBoundary(2)) Then
+        If (x(ind(i), 1) >= dBoundary(3, 1)) And (y(ind(i), 1) <= dBoundary(2, 1)) Then
             reg_count(5) = reg_count(5) + 1
             reg(reg_count(5), 5) = ind(i)
             ind(i) = -1
@@ -192,7 +199,7 @@ Sub regionF(dBoundary() As Double, ind() As Integer, reg() As Integer, reg_count
         If ind(i) = -1 Then
             GoTo continue
             End If
-        If (x(ind(i), 1) >= dBoundary(3)) Then
+        If (x(ind(i), 1) >= dBoundary(3, 1)) Then
             reg_count(6) = reg_count(6) + 1
             reg(reg_count(6), 6) = ind(i)
             ind(i) = -1
@@ -203,7 +210,8 @@ continue:
         
 End Sub
 'write region data to a spreadsheet for graphing purpose to a worksheet called region
-Sub writeRegion(dBoundary() As Double, post_num As Integer, reg() As Integer, reg_count() As Integer)
+Sub writeRegion(dBoundary() As Double, post_num As Integer, reg() As Integer, reg_count() As Integer, _
+    major() As Variant)
     Dim region As Worksheet, boundaryX As Range, boundaryY As Range
     Dim iRange As Range, iHeader As Range
     Dim i As Integer, j As Integer, regionNum As Integer
@@ -246,14 +254,21 @@ nexti:
         Set iHeader = iHeader.Offset(0, 1)
         iHeader.Value = names(i)
         'Write the x line
+        Dim tempv
         j = i - regionNum
-        iRange.Cells(6 * j - 5, 1).Value = dBoundary(2 * j - 1)
+        tempv = dBoundary(2 * j - 1, 1) - (major(dBoundary(2 * j - 1, 2), 1) / 2)
+        If (2 * j - 1) > 2 Then tempv = dBoundary(2 * j - 1, 1) + _
+            (major(dBoundary(2 * j - 1, 2), 1) / 2)
+        iRange.Cells(6 * j - 5, 1).Value = tempv
         iRange.Cells(6 * j - 5, 2).Value = 0
-        iRange.Cells(6 * j - 5 + 1, 1).Value = dBoundary(2 * j - 1)
+        iRange.Cells(6 * j - 5 + 1, 1).Value = tempv
         'Write the y line
-        iRange.Cells(6 * j - 5 + 3, 2).Value = dBoundary(2 * j - 1 + 1)
+        tempv = dBoundary(2 * j - 1 + 1, 1) - (major(dBoundary(2 * j - 1 + 1, 2), 1) / 2)
+        If (2 * j - 1) > 2 Then tempv = dBoundary(2 * j - 1 + 1, 1) + _
+            (major(dBoundary(2 * j - 1 + 1, 2), 1) / 2)
+        iRange.Cells(6 * j - 5 + 3, 2).Value = tempv
         iRange.Cells(6 * j - 5 + 3, 1).Value = 0
-        iRange.Cells(6 * j - 5 + 4, 2).Value = dBoundary(2 * j - 1 + 1)
+        iRange.Cells(6 * j - 5 + 4, 2).Value = tempv
         Next i
 End Sub
 
