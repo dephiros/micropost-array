@@ -4,6 +4,44 @@ Attribute VB_Name = "Module1"
 Sub start()
     Options.Show
 End Sub
+Public Sub ProcessData(exportChart As Boolean, scl As Double, topAsBottom As Boolean)
+    Application.ScreenUpdating = False
+    Call importSheet(ThisWorkbook.path)
+    Dim top As Worksheet, bottom As Worksheet, result As Worksheet
+    Set top = Worksheets("top")
+    Set bottom = Worksheets("bottom")
+    Call sortCol(top, "Y")
+    Call sortCol(bottom, "Y")
+    'Name All column in worksheet
+    Call clearName(top)
+    Call nameCol(top)
+    Call nameCol(bottom)
+    'Create new sheet
+    Application.DisplayAlerts = False
+    For Each sh In Worksheets
+        If sh.Name Like "result" Then sh.Delete
+    Next
+    Set result = Sheets.Add
+    result.Name = "result"
+    Application.DisplayAlerts = True
+    Dim rowNum As Integer
+    If top.Cells(1, 1).End(xlDown).Row > bottom.Cells(1, 1).End(xlDown).Row Then
+        rowNum = bottom.Cells(1, 1).End(xlDown).Row - 1
+        Else
+        rowNum = top.Cells(1, 1).End(xlDown).Row - 1
+        End If
+    'create named column for result
+    Call makeNamedResult(result, rowNum)
+    'match top and bottom data
+    Call matchData(top, bottom, result, scl)
+    'calculate displacement and force data
+    Call Calculation(result)
+    Call scaleG(3)
+    'user input
+    Call Module3.testRegion
+    Call Module2.Graph(exportChart, result, scl, topAsBottom)
+    Application.ScreenUpdating = True
+End Sub
 
 'Calculate average of Major and Minor and return an array
 Public Function averageR(ws As Worksheet, majorN As String, minorN As String) As Double()
@@ -136,6 +174,7 @@ End Sub
 
 'Search and match data according to dx, dy and put to result worksheet.
 Public Sub matchData(top As Worksheet, bottom As Worksheet, result As Worksheet, scl As Double)
+    Application.DisplayAlerts = False
     Dim tX As Range, tY As Range, bX As Range, bY As Range, average() As Double
     Dim count As Integer, count0 As Integer, count1 As Integer
     Dim i As Integer, j As Integer
@@ -245,7 +284,7 @@ Public Sub matchData(top As Worksheet, bottom As Worksheet, result As Worksheet,
         End If
     Next i
     matchSheet.Delete
-        
+    Application.DisplayAlerts = True
 End Sub
 'Each top/bottom post will propose to a bottom/top post. The proposal will be checked
 'the proposal array. If there is conflict, the distance will be compared; if the
@@ -316,52 +355,9 @@ Sub optionSelect(exportChart As Boolean, scl As Double, topAsBottom As Boolean)
     scl = Options.scale_um / Options.scale_pixel
 End Sub
 
-'Print to specified column for debugging.
-Sub Out(item As Variant, Optional column As String = "A")
-Dim ws As Worksheet
-Set ws = ActiveSheet
-count = Application.WorksheetFunction.count(ws.Range(column & ":" & column))
-ws.Range(column & 1).Offset(count + 1, 0).Value = item
-End Sub
 
-Public Sub ProcessData(exportChart As Boolean, scl As Double, topAsBottom As Boolean)
-    Application.ScreenUpdating = False
-    Call importSheet(ThisWorkbook.path)
-    Dim top As Worksheet, bottom As Worksheet, result As Worksheet
-    Set top = Worksheets("top")
-    Set bottom = Worksheets("bottom")
-    Call sortCol(top, "Y")
-    Call sortCol(bottom, "Y")
-    'Name All column in worksheet
-    Call clearName(top)
-    Call nameCol(top)
-    Call nameCol(bottom)
-    'Create new sheet
-    Application.DisplayAlerts = False
-    For Each sh In Worksheets
-        If sh.Name Like "result" Then sh.Delete
-    Next
-    Set result = Sheets.Add
-    result.Name = "result"
-    Application.DisplayAlerts = True
-    Dim rowNum As Integer
-    If top.Cells(1, 1).End(xlDown).Row > bottom.Cells(1, 1).End(xlDown).Row Then
-        rowNum = bottom.Cells(1, 1).End(xlDown).Row - 1
-        Else
-        rowNum = top.Cells(1, 1).End(xlDown).Row - 1
-        End If
-    'create named column for result
-    Call makeNamedResult(result, rowNum)
-    'match top and bottom data
-    Call matchData(top, bottom, result, scl)
-    'calculate displacement and force data
-    Call Calculation(result)
-    Call scaleG(3)
-    'user input
-    Call Module3.testRegion
-    Call Module2.Graph(exportChart, result, scl, topAsBottom)
-    Application.ScreenUpdating = True
-End Sub
+
+
 
 'Change the top coordinate to scale up the displacement vector by N
 Sub scaleG(n As Integer)
@@ -397,3 +393,10 @@ End Sub
 End Sub
 
 
+'Print to specified column for debugging.
+Sub Out(item As Variant, Optional column As String = "A")
+Dim ws As Worksheet
+Set ws = ActiveSheet
+count = Application.WorksheetFunction.count(ws.Range(column & ":" & column))
+ws.Range(column & 1).Offset(count + 1, 0).Value = item
+End Sub
