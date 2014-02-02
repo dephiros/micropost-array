@@ -34,7 +34,7 @@ Sub Graph(exportChart As Boolean, result As Worksheet, scl As Double, topAsBotto
     Dim chartobj As ChartObject
     Set chartobj = result.ChartObjects("displacement")
     Call formatChart(chartobj.chart)
-    Call graphDLine(result.ChartObjects)
+'    Call graphDLine(result.ChartObjects)
     If exportChart Then Call exportChartf(chartobj)
 End Sub
 'Prepare data for graphing

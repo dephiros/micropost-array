@@ -38,7 +38,7 @@ Public Sub ProcessData(exportChart As Boolean, scl As Double, topAsBottom As Boo
     Call Calculation(result)
     Call scaleG(3)
     'user input
-    Call Module3.testRegion
+'    Call Module3.testRegion
     Call Module2.Graph(exportChart, result, scl, topAsBottom)
     Application.ScreenUpdating = True
 End Sub
